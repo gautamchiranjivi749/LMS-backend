@@ -22,4 +22,5 @@ class Controller extends BaseController
     ) {
         return ApiResponse::error($message, $errors, $status);
     }
+    
 }
