@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Helpers;
+namespace App\Traits;
 
 use Illuminate\Http\JsonResponse;
 
-class ApiResponse
+trait ApiResponse
 {
-    public static function success(
-        string $message = 'Success',
-        mixed $data = null,
-        int $status = 200
-    ): JsonResponse {
+        protected function success(
+            string $message = 'Success',
+            mixed $data = null,
+            int $status = 200
+        ): JsonResponse {
         return response()->json([
             'success' => true,
             'message' => $message,
@@ -18,7 +18,7 @@ class ApiResponse
         ], $status);
     }
 
-    public static function error(
+        protected function error(
         string $message = 'Something went wrong.',
         mixed $errors = null,
         int $status = 500
