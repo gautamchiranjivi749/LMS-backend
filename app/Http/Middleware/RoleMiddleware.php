@@ -13,7 +13,7 @@ class RoleMiddleware
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+      public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $user = $request->user();
 
