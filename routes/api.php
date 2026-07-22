@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TestController;
+use App\Http\Controllers\API\CourseController;
 
 Route::get('/test', [TestController::class, 'index']);
 
@@ -12,6 +13,9 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 
     Route::post('/login', [AuthController::class, 'login']);
+
+    Route::get('/courses', [CourseController::class, 'published']);
+
 });
 
 // Protected Routes
@@ -32,12 +36,10 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     });
 
     // Teacher only
-    Route::middleware('role:teacher')->group(function () {
-        Route::get('/teacher/dashboard', function () {
-            return response()->json([
-                'message' => 'Welcome Teacher'
-            ]);
-        });
+    
+    Route::middleware(['auth:sanctum', 'role:teacher'])->group(function () {
+
+        Route::apiResource('teacher/courses', CourseController::class);
     });
 
     // Student only
