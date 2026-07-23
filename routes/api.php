@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\TestController;
 use App\Http\Controllers\API\CourseController;
+use App\Http\Controllers\API\UserController;
 
 Route::get('/test', [TestController::class, 'index']);
 
@@ -32,6 +33,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
             return response()->json([
                 'message' => 'Welcome Admin'
             ]);
+        Route::apiResource('users', UserController::class);    
         });
     });
 
@@ -50,3 +52,10 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
             ]);
         });
     });
+
+    //user
+    Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::apiResource('users', UserController::class);
+
+});
