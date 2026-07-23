@@ -29,16 +29,19 @@ class CourseController extends Controller
     }
     public function store(StoreCourseRequest  $request)
     {
-        $course = Course::create([
-            'teacher_id' => auth()->id(),
-            'title' => $request->title,
-             'slug' => Str::slug($request->title) . '-' . time(),
-            'description' => $request->description,
-            'price' => $request->price,
-            'level' => $request->level,
-            'language' => $request->language,
-        ]);
-
+       $course = Course::create([
+    'teacher_id'   => auth()->id(),
+    'category_id'  => $request->category_id,
+    'title'        => $request->title,
+    'slug'         => Str::slug($request->title).'-'.time(),
+    'description'  => $request->description,
+    'thumbnail'    => $thumbnail ?? null,
+    'price'        => $request->price,
+    'level'        => $request->level,
+    'language'     => $request->language,
+    'status'       => $request->boolean('status'),
+    'published_at' => $request->boolean('status') ? now() : null,
+]);
         return $this->success(
             'Course created successfully.',
             new CourseResource($course),
@@ -107,4 +110,89 @@ class CourseController extends Controller
             CourseResource::collection($courses)
         );
     }
+    public function publicIndex(Request $request)
+{
+    $query = Course::with(['teacher', 'category', 'skills']);
+        // ->where('status', true);
+
+    // Search
+    if ($request->filled('search')) {
+        $query->where('title', 'like', '%' . $request->search . '%');
+    }
+
+    // Category Filter
+    if ($request->filled('category_id')) {
+        $query->where('category_id', $request->category_id);
+    }
+
+    // Latest first
+    $courses = $query->latest()->paginate(10);
+
+    return $this->success(
+        'Published courses retrieved successfully.',
+        CourseResource::collection($courses)
+    );
+}
+public function publicShow(Course $course)
+{
+    if (!$course->status) {
+        return $this->error(
+            'Course not found.',
+            [],
+            404
+        );
+    }
+
+    $course->load([
+        'teacher',
+        'category',
+        'skills'
+    ]);
+
+    return $this->success(
+        'Course details.',
+        new CourseResource($course)
+    );
+}
+public function latestCourses()
+{
+    $courses = Course::with('teacher')
+        ->where('status', true)
+        ->latest()
+        ->take(6)
+        ->get();
+
+    return $this->success(
+        'Latest courses.',
+        CourseResource::collection($courses)
+    );
+}
+public function categoryCourses($categoryId)
+{
+    $courses = Course::with('teacher')
+        ->where('category_id', $categoryId)
+        ->where('status', true)
+        ->latest()
+        ->get();
+
+    return $this->success(
+        'Category courses.',
+        CourseResource::collection($courses)
+    );
+}
+public function skillCourses($skillId)
+{
+    $courses = Course::with('teacher')
+        ->whereHas('skills', function ($query) use ($skillId) {
+            $query->where('skills.id', $skillId);
+        })
+        ->where('status', true)
+        ->latest()
+        ->get();
+
+    return $this->success(
+        'Skill courses.',
+        CourseResource::collection($courses)
+    );
+}
 }

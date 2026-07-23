@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreUserRequest extends FormRequest
+class UpdateSkillRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,10 +23,11 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-        'name' => 'required'| 'string'| 'max:255',
-        'email' => 'required'| 'email'| 'unique:users,email',
-        'password' => 'required'| 'min:8',
-        'role' => 'required'| 'in:Teacher,Student',
-        ];    
+             'name' => ['required','string','max:255',
+                Rule::unique('skills')->ignore($this->skill),
+            ],
+            'description' => ['nullable', 'string'],
+            'status' => ['nullable', 'boolean'],
+        ];
     }
 }
