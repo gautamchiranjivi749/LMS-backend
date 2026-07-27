@@ -28,6 +28,13 @@ class UpdateCourseRequest extends FormRequest
             'price' => 'sometimes|required|numeric',
             'level' => 'sometimes|required|in:beginner,intermediate,advanced',
             'language' => 'sometimes|required|string',
+            'category_id' => 'required|exists:categories,id',
+
+            'skill_ids' => 'nullable|array',
+
+            'skill_ids.*' => 'exists:skills,id',
+
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'status' => 'sometimes|boolean',
         ];
     }
