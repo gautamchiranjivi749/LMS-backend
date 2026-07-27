@@ -10,10 +10,17 @@ use App\Http\Resources\CourseResource;
 use App\Models\Course;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Str;
+use App\Services\FileUploadService;
 
 class CourseController extends Controller
 {
     use ApiResponse;
+    protected FileUploadService $fileUploadService;
+
+public function __construct(FileUploadService $fileUploadService)
+{
+    $this->fileUploadService = $fileUploadService;
+}
 
     public function index()
     {
@@ -27,28 +34,49 @@ class CourseController extends Controller
             CourseResource::collection($courses)
         );
     }
-    public function store(StoreCourseRequest  $request)
-    {
-       $course = Course::create([
-    'teacher_id'   => auth()->id(),
-    'category_id'  => $request->category_id,
-    'title'        => $request->title,
-    'slug'         => Str::slug($request->title).'-'.time(),
-    'description'  => $request->description,
-    'thumbnail'    => $thumbnail ?? null,
-    'price'        => $request->price,
-    'level'        => $request->level,
-    'language'     => $request->language,
-    'status'       => $request->boolean('status'),
-    'published_at' => $request->boolean('status') ? now() : null,
-]);
-        return $this->success(
-            'Course created successfully.',
-            new CourseResource($course),
-            201
-        );
+   public function store(StoreCourseRequest $request)
+{
+    $thumbnail = null;
 
+    // Upload thumbnail (if using FileUploadService)
+    if ($request->hasFile('thumbnail')) {
+        $thumbnail = $this->fileUploadService->upload(
+            $request->file('thumbnail'),
+            'courses'
+        );
     }
+
+    $course = Course::create([
+        'teacher_id'   => auth()->id(),
+        'category_id'  => $request->category_id,
+        'title'        => $request->title,
+        'slug'         => Str::slug($request->title) . '-' . time(),
+        'description'  => $request->description,
+        'thumbnail'    => $thumbnail,
+        'price'        => $request->price,
+        'level'        => $request->level,
+        'language'     => $request->language,
+        'status'       => $request->boolean('status'),
+        'published_at' => $request->boolean('status') ? now() : null,
+    ]);
+
+    // Attach skills
+    if ($request->filled('skill_ids')) {
+        $course->skills()->sync($request->skill_ids);
+    }
+
+    $course->load([
+        'teacher',
+        'category',
+        'skills',
+    ]);
+
+    return $this->success(
+        'Course created successfully.',
+        new CourseResource($course),
+        201
+    );
+}
       /**
      * Show Course
      */
@@ -67,19 +95,51 @@ class CourseController extends Controller
     /**
      * Update Course
      */
-    public function update(UpdateCourseRequest $request, Course $course)
-    {
-        if ($course->teacher_id != auth()->id()) {
-            return $this->error('Unauthorized', [], 403);
-        }
+   public function update(UpdateCourseRequest $request, Course $course)
+{
+    if ($course->teacher_id != auth()->id()) {
+        return $this->error('Unauthorized', [], 403);
+    }
 
-        $course->update($request->validated());
+    $thumbnail = $course->thumbnail;
 
-        return $this->success(
-            'Course updated.',
-            new CourseResource($course)
+    // Replace thumbnail
+    if ($request->hasFile('thumbnail')) {
+        $thumbnail = $this->fileUploadService->replace(
+            $request->file('thumbnail'),
+            $course->thumbnail,
+            'courses'
         );
     }
+
+    $course->update([
+        'category_id'  => $request->category_id,
+        'title'        => $request->title,
+        'description'  => $request->description,
+        'thumbnail'    => $thumbnail,
+        'price'        => $request->price,
+        'level'        => $request->level,
+        'language'     => $request->language,
+        'status'       => $request->boolean('status'),
+        'published_at' => $request->boolean('status') ? now() : null,
+    ]);
+
+    // Sync skills
+    $course->skills()->sync(
+        $request->skill_ids ?? []
+    );
+
+    $course->load([
+        'teacher',
+        'category',
+        'skills',
+    ]);
+
+    return $this->success(
+        'Course updated successfully.',
+        new CourseResource($course)
+    );
+}
 
     /**
      * Delete Course

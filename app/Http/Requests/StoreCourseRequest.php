@@ -28,6 +28,9 @@ class StoreCourseRequest extends FormRequest
             'category_id' => [
                 'required','exists:categories,id',
                 ],
+            'skill_ids' => ['nullable', 'array'],
+
+'skill_ids.*' => ['exists:skills,id'],
 
             'description'=>'required',
 
