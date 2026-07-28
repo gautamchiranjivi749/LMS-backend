@@ -68,9 +68,10 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 
     // Teacher only
     
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::middleware(['auth:sanctum','role:teacher'])->group(function () {
 
         Route::apiResource('teacher/courses', CourseController::class);
+        Route::apiResource('lessons',LessonController::class);
     });
 
     // Student only
