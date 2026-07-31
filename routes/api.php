@@ -8,6 +8,8 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\SkillController;
 use App\Http\Controllers\API\LessonController;
+use App\Http\Controllers\API\EnrollmentController;
+
 
 
 
@@ -55,43 +57,35 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 });
 
   // Admin only
-    Route::middleware('auth:sanctum','role:admin')->group(function () {
+    Route::middleware('auth:sanctum','role:Admin')->group(function () {
     
         Route::apiResource('users', UserController::class);  
 
-        //  Route::apiResource('skills',SkillController::class);
+        Route::apiResource('categories', CategoryController::class);
+        Route::apiResource('skills', SkillController::class);
 
-        // Route::apiResource('categories', CategoryController::class);
-    //      Route::apiResource('skills', SkillController::class);
-
-    // Route::patch(
-    //     'skills/{id}/restore',
-    //     [SkillController::class, 'restore']
-    // );
-
-    // Route::delete(
-    //     'skills/{id}/force-delete',
-    //     [SkillController::class, 'forceDelete']
-    // );
+        Route::patch('categories/{id}/restore', [CategoryController::class, 'restore']);
+        Route::patch('skills/{id}/restore', [SkillController::class, 'restore']);
+        Route::delete('skills/{id}/force-delete', [SkillController::class, 'forceDelete']);
 
         });
     
 
     // Teacher only
     
-    Route::middleware(['auth:sanctum','role:teacher'])->group(function () {
+    Route::middleware(['auth:sanctum','role:Teacher'])->prefix('teacher')->group(function () {
 
-        Route::apiResource('teacher/courses', CourseController::class);
+        Route::apiResource('courses', CourseController::class);
+
         Route::apiResource('lessons',LessonController::class);
     });
 
     // Student only
-    Route::middleware('role:student')->group(function () {
-        Route::get('/student/dashboard', function () {
-            return response()->json([
-                'message' => 'Welcome Student'
-            ]);
-        });
+       Route::middleware(['auth:sanctum', 'role:Student'])
+        ->prefix('student')->group(function () {
+
+        Route::apiResource('enrollments', EnrollmentController::class);
+
     });
 
     //user
@@ -99,32 +93,16 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 
     Route::apiResource('users', UserController::class);
 
-    Route::middleware('auth:sanctum')->group(function () {
-
     Route::apiResource('categories', CategoryController::class);
 
 });
 
-});
 
-Route::patch(
-    'categories/{id}/restore',
-    [CategoryController::class, 'restore']
-);
-
-    Route::middleware(['auth:sanctum'])->group(function () {
-
-    Route::apiResource('skills',SkillController::class);
-
-     Route::patch(
-        'skills/{id}/restore',
-        [SkillController::class, 'restore']
-    );
-
-    Route::delete(
-        'skills/{id}/force-delete',
-        [SkillController::class, 'forceDelete']
-    );
-    
-
+   
+Route::middleware('auth:sanctum')->get('/test-auth', function () {
+    return response()->json([
+        'id' => auth()->id(),
+        'user' => auth()->user(),
+        'roles' => auth()->user()?->getRoleNames(),
+    ]);
 });

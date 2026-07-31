@@ -41,12 +41,36 @@ class Course extends Model
         );
     }
     public function category()
-{
-    return $this->belongsTo(Category::class);
-}
-public function lessons()
-{
-    return $this->hasMany(Lesson::class)
-                ->orderBy('lesson_order');
-}
+    {
+        return $this->belongsTo(Category::class);
+    }
+    public function lessons()
+    {
+        return $this->hasMany(Lesson::class)
+                    ->orderBy('lesson_order');
+    }
+            /**
+         * Course enrollments
+         */
+        public function enrollments()
+        {
+            return $this->hasMany(Enrollment::class);
+        }
+
+        /**
+        * Students enrolled in this course
+        */
+        public function students()
+        {
+            return $this->belongsToMany(
+                User::class,
+                'enrollments'
+            )
+            ->withPivot([
+                'status',
+                'progress',
+                'enrolled_at',
+            ])
+            ->withTimestamps();
+        }
 }

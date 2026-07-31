@@ -50,7 +50,30 @@ class User extends Authenticatable
         ];
     }
     public function courses()
-{
-    return $this->hasMany(Course::class,'teacher_id');
-}
+    {
+        return $this->hasMany(Course::class,'teacher_id');
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class,);
+    }
+    /**
+ * Courses enrolled by the student
+ */
+    public function enrolledCourses()
+    {
+        return $this->belongsToMany(
+            Course::class,
+            'enrollments'
+        )
+        ->withPivot([
+            'status',
+            'progress',
+            'enrolled_at',
+        ])
+        ->withTimestamps();
+    }
+
+
 }

@@ -24,6 +24,7 @@ class AuthController extends Controller
             'password' => bcrypt($request->password),
             
         ]);
+        $user->assignRole($request->role);
         $token = $user->createToken('lms_token')->plainTextToken;
 
         return $this->success(
