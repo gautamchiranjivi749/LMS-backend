@@ -18,6 +18,17 @@ class Lesson extends Model
     ];
 
 
+    protected function casts(): array
+    {
+        return [
+            'is_preview' => 'boolean',
+            'status' => 'boolean',
+            'duration' => 'integer',
+            'lesson_order' => 'integer',
+        ];
+    }
+
+
     public function course()
 {
     return $this->belongsTo(Course::class);

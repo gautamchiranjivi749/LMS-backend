@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Models\Lesson;
@@ -11,13 +11,14 @@ use App\Http\Requests\UpdateLessonRequest;
 use App\Services\FileUploadService;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ApiResponse;
+use App\Http\Controllers\Controller;
 
 class LessonController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    use apiResponse;
+    use ApiResponse;
 
     protected FileUploadService $fileUploadService;
 
@@ -27,17 +28,17 @@ class LessonController extends Controller
     }
     public function index(Request $request)
     {
-        $lessons =  Lesson::with('course')->whereHAs('course',function ($query)
+        $lessons =  Lesson::with('[course]')->whereHAs('course',function ($query)
         {
              $query->where('teacher_id', Auth::id());
         })
-          ->latest()
+        ->orderBy('lesson_order')
         ->paginate(10);
 
-    return $this->successResponse(
-        LessonResource::collection($lessons),
-        'Lessons retrieved successfully.'
-    );
+    return $this->success(
+    'Lesson retrieved successfully.',
+    LessonResource::collection($lessons)
+);
     }
 
     /**
@@ -76,6 +77,38 @@ class LessonController extends Controller
 {
     if ($lesson->course->teacher_id != Auth::id()) {
         return $this->errorResponse('Unauthorized.', 403);
+    }
+
+    return $this->successResponse(
+        new LessonResource($lesson->load('course')),
+        'Lesson details.'
+    );
+}
+
+//GET /api/courses/{course}/lessons
+
+public function publicIndex(Course $course)
+{
+    $lessons = $course->lessons()
+        ->where('status', true)
+        ->orderBy('lesson_order')
+        ->get();
+
+    return $this->successResponse(
+        LessonResource::collection($lessons),
+        'Lessons retrieved successfully.'
+    );
+}
+
+//GET /api/lessons/{lesson}
+
+public function publicShow(Lesson $lesson)
+{
+    if (!$lesson->status) {
+        return $this->errorResponse(
+            'Lesson not found.',
+            404
+        );
     }
 
     return $this->successResponse(

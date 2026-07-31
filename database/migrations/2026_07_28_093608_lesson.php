@@ -11,26 +11,45 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lessons',function(Blueprint $table)
+        Schema::create('lessons', function (Blueprint $table) {
 
-        {
+            $table->id();
 
-        $table->id();
-        $table->foreignId('course_id')->constrained()->cascadeonDelete();
-        $table->string('title');
+            // Relationship
+            $table->foreignId('course_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            // Lesson Information
+            $table->string('title');
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
 
-        $table->string('video')->nullable();
+            // Video
+            $table->enum('video_type', [
+                'upload',
+                'youtube',
+                'vimeo'
+            ])->default('upload');
 
-        $table->integer('duration')->nullable(); // minutes
+            $table->string('video_url')->nullable();
+            $table->string('video_file')->nullable();
 
-        $table->integer('lesson_order')->default(1);
+            // Lesson Details
+            $table->integer('duration')->nullable()
+                ->comment('Duration in seconds');
 
-        $table->boolean('is_preview')->default(false);
+            $table->integer('order')
+                ->default(1);
 
-        $table->boolean('status')->default(true);
+            $table->boolean('is_preview')
+                ->default(false);
 
-        $table->timestamps();
+            $table->boolean('status')
+                ->default(true);
+
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -39,6 +58,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('lessons');
     }
 };

@@ -14,28 +14,31 @@ class LessonResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+       
         return [
-            'id'=>$this->id,
-            'course_id'=>$this->course_id,
-            'course'=>$this->whenLoaded('course'),
-              'title'=>$this->title,
 
-        'description'=>$this->description,
+            'id' => $this->id,
 
-        'video'=>$this->video
-            ? asset('storage/'.$this->video)
-            : null,
+            'course' => [
+                'id' => $this->course->id,
+                'title' => $this->course->title,
+            ],
 
-        'duration'=>$this->duration,
+            'title' => $this->title,
 
-        'lesson_order'=>$this->lesson_order,
+            'description' => $this->description,
 
-        'is_preview'=>$this->is_preview,
+            'video' => $this->video,
 
-        'status'=>$this->status,
+            'duration' => $this->duration,
 
-        'created_at'=>$this->created_at,
+            'lesson_order' => $this->lesson_order,
 
+            'is_preview' => $this->is_preview,
+
+            'status' => $this->status,
+
+            'created_at' => $this->created_at,
         ];
     }
 }

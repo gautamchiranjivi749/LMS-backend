@@ -7,6 +7,7 @@ use App\Http\Controllers\API\CourseController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\SkillController;
+use App\Http\Controllers\API\LessonController;
 
 
 
@@ -22,6 +23,16 @@ Route::prefix('public')->group(function () {
     Route::get('/courses/category/{category}', [CourseController::class, 'categoryCourses']);
 
     Route::get('/courses/skill/{skill}', [CourseController::class, 'skillCourses']);
+
+    Route::get(
+    'courses/{course}/lessons',
+    [LessonController::class, 'publicIndex']
+);
+
+Route::get(
+    'lessons/{lesson}',
+    [LessonController::class, 'publicShow']
+);
 
 });
 
