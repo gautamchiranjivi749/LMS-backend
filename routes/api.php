@@ -9,6 +9,9 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\SkillController;
 use App\Http\Controllers\API\LessonController;
 use App\Http\Controllers\API\EnrollmentController;
+use App\Http\Controllers\API\QuizController;
+use App\Http\Controllers\API\QuestionController;
+use App\Http\Controllers\API\QuestionOptionController;
 
 
 
@@ -26,15 +29,17 @@ Route::prefix('public')->group(function () {
 
     Route::get('/courses/skill/{skill}', [CourseController::class, 'skillCourses']);
 
-    Route::get(
-    'courses/{course}/lessons',
-    [LessonController::class, 'publicIndex']
-);
+    Route::get('courses/{course}/lessons',[LessonController::class, 'publicIndex']);
 
-Route::get(
-    'lessons/{lesson}',
-    [LessonController::class, 'publicShow']
-);
+    Route::get('lessons/{lesson}',[LessonController::class, 'publicShow']);
+
+    Route::get('courses/{course}/quizzes',[QuizController::class, 'publicIndex']);
+
+    Route::get('quizzes/{quiz}',[QuizController::class, 'publicShow']);
+
+    Route::get('quizzes/{quiz}/questions',[QuestionController::class, 'publicIndex']);
+
+    Route::get('questions/{question}/options',[QuestionOptionController::class, 'publicIndex']);
 
 });
 
@@ -73,11 +78,18 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 
     // Teacher only
     
-    Route::middleware(['auth:sanctum','role:Teacher'])->prefix('teacher')->group(function () {
+    Route::middleware(['auth:sanctum','role:Teacher'])->prefix('teacher')
+    ->group(function () {
 
         Route::apiResource('courses', CourseController::class);
 
         Route::apiResource('lessons',LessonController::class);
+
+        Route::apiResource('quizzes', QuizController::class);
+
+        Route::apiResource('questions', QuestionController::class);
+
+        Route::apiResource('question-options', QuestionOptionController::class);
     });
 
     // Student only
