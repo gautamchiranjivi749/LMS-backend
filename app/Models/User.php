@@ -74,6 +74,12 @@ class User extends Authenticatable
         ])
         ->withTimestamps();
     }
-
+    public function quizAttempts()
+    {
+        return $this->hasMany(
+            QuizAttempt::class,
+            'student_id'
+        );
+    }
 
 }

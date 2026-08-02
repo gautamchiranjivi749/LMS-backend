@@ -12,6 +12,8 @@ use App\Http\Controllers\API\EnrollmentController;
 use App\Http\Controllers\API\QuizController;
 use App\Http\Controllers\API\QuestionController;
 use App\Http\Controllers\API\QuestionOptionController;
+use App\Http\Controllers\API\QuizAttemptController;
+use Illuminate\Support\Facades\Route;
 
 
 
@@ -98,6 +100,13 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 
         Route::apiResource('enrollments', EnrollmentController::class);
 
+           Route::post('quizzes/{quiz}/start',[QuizAttemptController::class, 'start']);
+
+        Route::post('quizzes/{quiz}/submit',[QuizAttemptController::class, 'submit'] );
+
+        Route::get('quizzes/{quiz}/result',[QuizAttemptController::class, 'result']);
+
+        Route::get('quiz-history',[QuizAttemptController::class, 'history']);    
     });
 
     //user
