@@ -14,6 +14,8 @@ use App\Models\StudentAnswer;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Certificate;
+use Illuminate\Support\Str;
 
 class QuizAttemptController extends Controller
 {
@@ -173,6 +175,28 @@ class QuizAttemptController extends Controller
                 'status' => 'submitted',
                 'completed_at' => now(),
             ]);
+
+            // Generate certificate if student passed
+            if ($score >= $quiz->passing_marks) {
+
+                $certificate = Certificate::where('user_id', Auth::id())
+                    ->where('course_id', $quiz->course_id)
+                    ->first();
+
+                if (!$certificate) {
+
+                    Certificate::create([
+                        'user_id' => Auth::id(),
+                        'course_id' => $quiz->course_id,
+                        'quiz_attempt_id' => $attempt->id,
+                        'certificate_no' => strtoupper(
+                            'LMS-' . Str::random(10)
+                        ),
+                        'issued_date' => now(),
+                    ]);
+
+                }
+            }
 
             DB::commit();
 

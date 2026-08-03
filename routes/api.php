@@ -13,6 +13,7 @@ use App\Http\Controllers\API\QuizController;
 use App\Http\Controllers\API\QuestionController;
 use App\Http\Controllers\API\QuestionOptionController;
 use App\Http\Controllers\API\QuizAttemptController;
+use App\Http\Controllers\API\CertificateController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -106,7 +107,11 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 
         Route::get('quizzes/{quiz}/result',[QuizAttemptController::class, 'result']);
 
-        Route::get('quiz-history',[QuizAttemptController::class, 'history']);    
+        Route::get('quiz-history',[QuizAttemptController::class, 'history']);
+        
+        Route::apiResource('certificates', CertificateController::class)->only(['index', 'show']);
+
+        Route::get('certificates/{certificate}/download',[CertificateController::class,'download']);
     });
 
     //user

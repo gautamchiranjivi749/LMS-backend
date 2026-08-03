@@ -38,5 +38,10 @@ class Quiz extends Model
         return $this->hasMany(QuizAttempt::class);
     }
 
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
    
 }
