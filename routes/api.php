@@ -101,7 +101,7 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
 
         Route::apiResource('enrollments', EnrollmentController::class);
 
-           Route::post('quizzes/{quiz}/start',[QuizAttemptController::class, 'start']);
+         Route::post('quizzes/{quiz}/start',[QuizAttemptController::class, 'start']);
 
         Route::post('quizzes/{quiz}/submit',[QuizAttemptController::class, 'submit'] );
 

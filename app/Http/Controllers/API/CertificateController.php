@@ -99,13 +99,11 @@ class CertificateController extends Controller
         'course',
     ]);
 
-    $pdf = Pdf::loadView(
-        'certificates.certificate',
-        compact('certificate')
-    );
+  $pdf = Pdf::loadView('certificates.certificate', compact('certificate'))
+    ->setPaper('a4', 'landscape');
 
-    return $pdf->download(
-        $certificate->certificate_no.'.pdf'
-    );
+return $pdf->download(
+    'certificate-'.$certificate->certificate_no.'.pdf'
+);
 }
 }
