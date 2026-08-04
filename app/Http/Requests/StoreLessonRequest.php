@@ -24,14 +24,25 @@ class StoreLessonRequest extends FormRequest
     {
         return [
             
-            'course_id'=>'required |exists:course,id',
-            'title'=>'required|string|max:255',
-            'description'=>'nullable|string',
-            'video'=>'nullable|file|mimes:mp4,mov,avi,mkv|max:102400',
-            'duration'=>'nullable|integer|min:1',
-            'lesson_order'=>'nullable|integer|min:1',
-            'is_preview'=>'nullable|boolean',
-             'status'=>'nullable|boolean',
+              'course_id' => 'required|exists:courses,id',
+
+        'title' => 'required|string|max:255',
+
+        'description' => 'nullable|string',
+
+        'video_type' => 'required|in:upload,youtube,vimeo',
+
+        'video_url' => 'nullable|url',
+
+        'video_file' => 'nullable|file|mimes:mp4,mov,avi|max:51200',
+
+        'duration' => 'nullable|integer|min:1',
+
+        'order' => 'required|integer|min:1',
+
+        'is_preview' => 'boolean',
+
+        'status' => 'boolean',
         ];
     }
 }

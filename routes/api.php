@@ -14,6 +14,10 @@ use App\Http\Controllers\API\QuestionController;
 use App\Http\Controllers\API\QuestionOptionController;
 use App\Http\Controllers\API\QuizAttemptController;
 use App\Http\Controllers\API\CertificateController;
+use App\Http\Controllers\API\StudentDashboardController;
+use App\Http\Controllers\API\TeacherDashboardController;
+use App\Http\Controllers\API\AdminDashboardController;
+
 use Illuminate\Support\Facades\Route;
 
 
@@ -73,8 +77,11 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
         Route::apiResource('skills', SkillController::class);
 
         Route::patch('categories/{id}/restore', [CategoryController::class, 'restore']);
+
         Route::patch('skills/{id}/restore', [SkillController::class, 'restore']);
         Route::delete('skills/{id}/force-delete', [SkillController::class, 'forceDelete']);
+
+        Route::get('dashboard', [AdminDashboardController::class, 'index']);
 
         });
     
@@ -93,6 +100,8 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
         Route::apiResource('questions', QuestionController::class);
 
         Route::apiResource('question-options', QuestionOptionController::class);
+
+        Route::get('dashboard', [TeacherDashboardController::class, 'index']);
     });
 
     // Student only
@@ -112,6 +121,8 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
         Route::apiResource('certificates', CertificateController::class)->only(['index', 'show']);
 
         Route::get('certificates/{certificate}/download',[CertificateController::class,'download']);
+
+        Route::get('dashboard', [StudentDashboardController::class, 'index']);
     });
 
     //user

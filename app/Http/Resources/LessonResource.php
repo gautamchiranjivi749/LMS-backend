@@ -28,11 +28,15 @@ class LessonResource extends JsonResource
 
             'description' => $this->description,
 
-            'video' => $this->video,
 
             'duration' => $this->duration,
+            'video_type' => $this->video_type,
 
-            'lesson_order' => $this->lesson_order,
+            'video_url' => $this->video_url,
+
+            'video_file' => $this->video_file,
+
+            'order' => $this->order,
 
             'is_preview' => $this->is_preview,
 

@@ -83,4 +83,6 @@ class Course extends Model
         {
             return $this->hasMany(Certificate::class);
         }
+
+      
 }
