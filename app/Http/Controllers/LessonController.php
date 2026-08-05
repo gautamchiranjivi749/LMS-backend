@@ -12,6 +12,10 @@ use App\Services\FileUploadService;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\ApiResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 
 class LessonController extends Controller
 {
@@ -46,29 +50,79 @@ class LessonController extends Controller
      */
   public function store(StoreLessonRequest $request)
 {
+    // Check if the teacher owns the course
     $course = Course::where('id', $request->course_id)
-        ->where('teacher_id', Auth::id())
+        ->where('teacher_id', auth()->id())
         ->first();
 
     if (!$course) {
-        return $this->errorResponse('Unauthorized course.', 403);
+        return response()->json([
+            'success' => false,
+            'message' => 'Course not found or you are not authorized.'
+        ], 404);
     }
 
-    $data = $request->validated();
+    try {
 
-    if ($request->hasFile('video')) {
-        $data['video'] = $this->fileUploadService
-            ->upload($request->file('video'), 'lessons');
+        DB::beginTransaction();
+
+        $data = $request->validated();
+
+        // Generate unique slug
+        $data['slug'] = Str::slug($data['title']) . '-' . time();
+
+        // Prevent duplicate lesson order in same course
+        $exists = Lesson::where('course_id', $course->id)
+            ->where('order', $data['order'])
+            ->exists();
+
+        if ($exists) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Lesson order already exists for this course.'
+            ], 422);
+        }
+
+        // Upload video if required
+        if (
+            $request->video_type === 'upload' &&
+            $request->hasFile('video_file')
+        ) {
+
+            $data['video_file'] = $request
+                ->file('video_file')
+                ->store('lessons', 'public');
+        }
+
+        $lesson = Lesson::create($data);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lesson created successfully.',
+            'data' => new LessonResource(
+                $lesson->load('course')
+            )
+        ], 201);
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Lesson creation failed.',
+            'error' => config('app.debug')
+                ? $e->getMessage()
+                : null,
+        ], 500);
     }
-
-    $lesson = Lesson::create($data);
-
-    return $this->successResponse(
-        new LessonResource($lesson->load('course')),
-        'Lesson created successfully.',
-        201
-    );
 }
+
 
     /**
      * Display the specified resource.
@@ -119,50 +173,162 @@ public function publicShow(Lesson $lesson)
     /**
      * Update the specified resource in storage.
      */
-   public function update(UpdateLessonRequest $request, Lesson $lesson)
+  public function update(UpdateLessonRequest $request, Lesson $lesson)
 {
-    if ($lesson->course->teacher_id != Auth::id()) {
-        return $this->errorResponse('Unauthorized.', 403);
+    // Check ownership
+    if ($lesson->course->teacher_id != auth()->id()) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized.'
+        ], 403);
     }
 
-    $data = $request->validated();
+    try {
 
-    if ($request->hasFile('video')) {
+        DB::beginTransaction();
 
-        if ($lesson->video) {
-            $this->fileUploadService->delete($lesson->video);
+        $data = $request->validated();
+
+        // Update slug if title changes
+        if (isset($data['title'])) {
+
+            $data['slug'] = Str::slug($data['title']) . '-' . time();
         }
 
-        $data['video'] = $this->fileUploadService
-            ->upload($request->file('video'), 'lessons');
+        // Prevent duplicate lesson order
+        if (isset($data['order'])) {
+
+            $exists = Lesson::where('course_id', $lesson->course_id)
+                ->where('order', $data['order'])
+                ->where('id', '!=', $lesson->id)
+                ->exists();
+
+            if ($exists) {
+
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Lesson order already exists.'
+                ], 422);
+            }
+        }
+
+        // Upload new video
+        if (
+            $request->video_type == 'upload' &&
+            $request->hasFile('video_file')
+        ) {
+
+            if (
+                $lesson->video_file &&
+                Storage::disk('public')->exists($lesson->video_file)
+            ) {
+
+                Storage::disk('public')
+                    ->delete($lesson->video_file);
+            }
+
+            $data['video_file'] = $request
+                ->file('video_file')
+                ->store('lessons', 'public');
+
+            $data['video_url'] = null;
+        }
+
+        // If switching to YouTube/Vimeo
+        if (
+            isset($data['video_type']) &&
+            in_array($data['video_type'], ['youtube', 'vimeo'])
+        ) {
+
+            if (
+                $lesson->video_file &&
+                Storage::disk('public')->exists($lesson->video_file)
+            ) {
+
+                Storage::disk('public')
+                    ->delete($lesson->video_file);
+            }
+
+            $data['video_file'] = null;
+        }
+
+        $lesson->update($data);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lesson updated successfully.',
+            'data' => new LessonResource(
+                $lesson->fresh()->load('course')
+            )
+        ]);
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Lesson update failed.',
+            'error' => config('app.debug')
+                ? $e->getMessage()
+                : null
+        ], 500);
     }
-
-    $lesson->update($data);
-
-    return $this->successResponse(
-        new LessonResource($lesson->fresh()->load('course')),
-        'Lesson updated successfully.'
-    );
 }
 
     /**
      * Remove the specified resource from storage.
      */
-   public function destroy(Lesson $lesson)
+ public function destroy(Lesson $lesson)
 {
-    if ($lesson->course->teacher_id != Auth::id()) {
-        return $this->errorResponse('Unauthorized.', 403);
+    // Check ownership
+    if ($lesson->course->teacher_id != auth()->id()) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized.'
+        ], 403);
     }
 
-    if ($lesson->video) {
-        $this->fileUploadService->delete($lesson->video);
+    try {
+
+        DB::beginTransaction();
+
+        // Delete uploaded video if exists
+        if (
+            $lesson->video_file &&
+            Storage::disk('public')->exists($lesson->video_file)
+        ) {
+
+            Storage::disk('public')->delete($lesson->video_file);
+        }
+
+        // Soft delete
+        $lesson->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lesson deleted successfully.'
+        ]);
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Lesson deletion failed.',
+            'error' => config('app.debug')
+                ? $e->getMessage()
+                : null
+        ], 500);
     }
-
-    $lesson->delete();
-
-    return $this->successResponse(
-        null,
-        'Lesson deleted successfully.'
-    );
 }
 }

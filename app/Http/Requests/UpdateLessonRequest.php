@@ -29,7 +29,22 @@ class UpdateLessonRequest extends FormRequest
 
         'description'=>'nullable|string',
 
-        'video'=>'nullable|file|mimes:mp4,mov,avi,mkv|max:102400',
+         'video_type' => [
+                'sometimes',
+                'in:upload,youtube,vimeo'
+            ],
+
+            'video_url' => [
+                'nullable',
+                'url'
+            ],
+
+            'video_file' => [
+                'nullable',
+                'file',
+                'mimes:mp4,mov,avi,mkv',
+                'max:51200'
+            ],
 
         'duration'=>'nullable|integer|min:1',
 
