@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lesson extends Model
 {
+    use softDeletes;
     protected $fillable = [
          'course_id',
     'title',

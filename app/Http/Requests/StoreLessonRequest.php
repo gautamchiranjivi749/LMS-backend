@@ -24,7 +24,7 @@ class StoreLessonRequest extends FormRequest
     {
         return [
             
-              'course_id' => 'required|exists:courses,id',
+        'course_id' => 'required|exists:courses,id',
 
         'title' => 'required|string|max:255',
 
@@ -32,9 +32,19 @@ class StoreLessonRequest extends FormRequest
 
         'video_type' => 'required|in:upload,youtube,vimeo',
 
-        'video_url' => 'nullable|url',
+            'video_url' => [
+            'required_if:video_type,youtube,vimeo',
+            'nullable',
+            'url',
+        ],
 
-        'video_file' => 'nullable|file|mimes:mp4,mov,avi|max:51200',
+        'video_file' => [
+            'required_if:video_type,upload',
+            'nullable',
+            'file',
+            'mimes:mp4,mov,avi,mkv',
+            'max:51200',
+        ],
 
         'duration' => 'nullable|integer|min:1',
 
@@ -43,6 +53,31 @@ class StoreLessonRequest extends FormRequest
         'is_preview' => 'boolean',
 
         'status' => 'boolean',
+        ];
+    }
+    //custom messages for validation errors
+     public function messages(): array
+    {
+        return [
+
+            'course_id.required' => 'Course is required.',
+
+            'course_id.exists' => 'Selected course does not exist.',
+
+            'title.required' => 'Lesson title is required.',
+
+            'video_type.required' => 'Video type is required.',
+
+            'video_type.in' => 'Video type must be upload, youtube or vimeo.',
+
+            'video_url.url' => 'Please enter a valid video URL.',
+
+            'video_file.mimes' => 'Only MP4, MOV, AVI and MKV videos are allowed.',
+
+            'video_file.max' => 'Maximum video size is 50MB.',
+
+            'order.required' => 'Lesson order is required.',
+
         ];
     }
 }
