@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Lesson extends Model
 {
@@ -16,7 +17,7 @@ class Lesson extends Model
     'video_url',
     'video_file',
     'duration',
-    'order',
+    'lesson_order',
     'is_preview',
     'status',
     ];
@@ -26,7 +27,7 @@ class Lesson extends Model
     {
         return [
              'duration' => 'integer',
-        'order' => 'integer',
+        'lesson_order' => 'integer',
         'is_preview' => 'boolean',
         'status' => 'boolean',
         ];
@@ -38,6 +39,10 @@ class Lesson extends Model
     return $this->belongsTo(Course::class);
 }
 
+public function progress()
+{
+    return $this->hasMany(LessonProgress::class);
+}
    
 }
 
