@@ -17,7 +17,8 @@ use App\Http\Controllers\API\CertificateController;
 use App\Http\Controllers\API\StudentDashboardController;
 use App\Http\Controllers\API\TeacherDashboardController;
 use App\Http\Controllers\API\AdminDashboardController;
-
+use App\Http\Controllers\API\LessonProgressController;
+use App\Http\Controllers\API\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -47,6 +48,10 @@ Route::prefix('public')->group(function () {
     Route::get('quizzes/{quiz}/questions',[QuestionController::class, 'publicIndex']);
 
     Route::get('questions/{question}/options',[QuestionOptionController::class, 'publicIndex']);
+
+    Route::get('courses/{course}/reviews',[ReviewController::class, 'index']);
+
+    Route::get('reviews/{review}',[ReviewController::class, 'show']    );
 
 });
 
@@ -121,6 +126,24 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
         Route::apiResource('certificates', CertificateController::class)->only(['index', 'show']);
 
         Route::get('certificates/{certificate}/download',[CertificateController::class,'download']);
+
+         Route::post('lessons/{lesson}/complete',[LessonProgressController::class, 'complete']);
+
+        Route::get('courses/{course}/progress',[LessonProgressController::class, 'courseProgress']);
+
+        Route::get('my-progress',[LessonProgressController::class, 'myProgress']);  
+        
+         Route::post('courses/{course}/review',[ReviewController::class, 'store']); 
+
+        Route::get('courses/{course}/reviews',[ReviewController::class, 'index']);
+        
+        Route::put('reviews/{review}',[ReviewController::class, 'update']);
+
+        Route::delete('reviews/{review}',[ReviewController::class, 'destroy']);
+
+
+       
+
 
         Route::get('dashboard', [StudentDashboardController::class, 'index']);
     });

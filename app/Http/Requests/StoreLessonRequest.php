@@ -48,7 +48,7 @@ class StoreLessonRequest extends FormRequest
 
         'duration' => 'nullable|integer|min:1',
 
-        'order' => 'required|integer|min:1',
+        'lesson_order' => 'required|integer|min:1',
 
         'is_preview' => 'boolean',
 

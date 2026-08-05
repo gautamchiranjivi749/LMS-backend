@@ -86,5 +86,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Certificate::class);
     }
+    
+    public function lessonProgress()
+    {
+        return $this->hasMany(LessonProgress::class);
+    }
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 
 }
