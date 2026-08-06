@@ -8,6 +8,7 @@ use App\Http\Resources\CertificateResource;
 use App\Models\Certificate;
 use App\Traits\ApiResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\Auth;
 
 class CertificateController extends Controller
@@ -101,6 +102,17 @@ class CertificateController extends Controller
 
   $pdf = Pdf::loadView('certificates.certificate', compact('certificate'))
     ->setPaper('a4', 'landscape');
+    ActivityLogger::log(
+
+    'Download',
+
+    'Certificate',
+
+    $certificate->id,
+
+    'Certificate downloaded.'
+
+);
 
 return $pdf->download(
     'certificate-'.$certificate->certificate_no.'.pdf'

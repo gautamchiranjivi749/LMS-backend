@@ -10,6 +10,7 @@ use App\Http\Resources\CourseResource;
 use App\Models\Course;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Str;
+use App\Helpers\ActivityLogger;
 use App\Services\FileUploadService;
 
 class CourseController extends Controller
@@ -59,6 +60,17 @@ public function __construct(FileUploadService $fileUploadService)
         'status'       => $request->boolean('status'),
         'published_at' => $request->boolean('status') ? now() : null,
     ]);
+    ActivityLogger::log(
+
+    'Create',
+
+    'Course',
+
+    $course->id,
+
+    'Created course '.$course->title
+
+);
 
     // Attach skills
     if ($request->filled('skill_ids')) {
@@ -123,6 +135,17 @@ public function __construct(FileUploadService $fileUploadService)
         'status'       => $request->boolean('status'),
         'published_at' => $request->boolean('status') ? now() : null,
     ]);
+    ActivityLogger::log(
+
+    'Update',
+
+    'Course',
+
+    $course->id,
+
+    'Updated course '.$course->title
+
+);
 
     // Sync skills
     $course->skills()->sync(
@@ -151,6 +174,17 @@ public function __construct(FileUploadService $fileUploadService)
         }
 
         $course->delete();
+        ActivityLogger::log(
+
+    'Delete',
+
+    'Course',
+
+    $course->id,
+
+    'Deleted course '.$course->title
+
+);
 
         return $this->success('Course deleted successfully.');
     }
@@ -170,23 +204,52 @@ public function __construct(FileUploadService $fileUploadService)
             CourseResource::collection($courses)
         );
     }
-    public function publicIndex(Request $request)
+   public function publicIndex(Request $request)
 {
-    $query = Course::with(['teacher', 'category', 'skills']);
-        // ->where('status', true);
+    $courses = Course::with([
+            'teacher',
+            'category',
+            'skills'
+        ])
+        ->where('status', true)
 
-    // Search
-    if ($request->filled('search')) {
-        $query->where('title', 'like', '%' . $request->search . '%');
-    }
+        ->when($request->search, fn ($q) =>
+            $q->where('title', 'like', "%{$request->search}%"))
 
-    // Category Filter
-    if ($request->filled('category_id')) {
-        $query->where('category_id', $request->category_id);
-    }
+        ->when($request->category_id, fn ($q) =>
+            $q->where('category_id', $request->category_id))
 
-    // Latest first
-    $courses = $query->latest()->paginate(10);
+        ->when($request->teacher_id, fn ($q) =>
+            $q->where('teacher_id', $request->teacher_id))
+
+        ->when($request->skill_id, function ($q) use ($request) {
+            $q->whereHas('skills', function ($skill) use ($request) {
+                $skill->where('skills.id', $request->skill_id);
+            });
+        })
+
+        ->when($request->level, fn ($q) =>
+            $q->where('level', $request->level))
+
+        ->when($request->language, fn ($q) =>
+            $q->where('language', $request->language))
+
+        ->when($request->min_price, fn ($q) =>
+            $q->where('price', '>=', $request->min_price))
+
+        ->when($request->max_price, fn ($q) =>
+            $q->where('price', '<=', $request->max_price))
+
+        ->when($request->sort == 'latest', fn ($q) =>
+            $q->latest())
+
+        ->when($request->sort == 'price_low', fn ($q) =>
+            $q->orderBy('price'))
+
+        ->when($request->sort == 'price_high', fn ($q) =>
+            $q->orderByDesc('price'))
+
+        ->paginate(10);
 
     return $this->success(
         'Published courses retrieved successfully.',
