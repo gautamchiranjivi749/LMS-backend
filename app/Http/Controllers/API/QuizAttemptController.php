@@ -15,6 +15,7 @@ use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Certificate;
+use App\Models\Notification;
 use Illuminate\Support\Str;
 
 class QuizAttemptController extends Controller
@@ -81,6 +82,13 @@ class QuizAttemptController extends Controller
             'percentage' => 0,
             'status' => 'started',
             'started_at' => now(),
+        ]);
+
+        Notification::create([
+            'user_id' => Auth::id(),
+            'title' => 'Quiz Submitted',
+            'message' => 'Your quiz has been submitted successfully.',
+            'type' => 'quiz',
         ]);
        
 
@@ -177,26 +185,35 @@ class QuizAttemptController extends Controller
             ]);
 
             // Generate certificate if student passed
-            if ($score >= $quiz->passing_marks) {
+          if ($score >= $quiz->passing_marks) {
 
-                $certificate = Certificate::where('user_id', Auth::id())
-                    ->where('course_id', $quiz->course_id)
-                    ->first();
+    $certificate = Certificate::where('user_id', Auth::id())
+        ->where('course_id', $quiz->course_id)
+        ->first();
 
-                if (!$certificate) {
+    if (!$certificate) {
 
-                    Certificate::create([
-                        'user_id' => Auth::id(),
-                        'course_id' => $quiz->course_id,
-                        'quiz_attempt_id' => $attempt->id,
-                        'certificate_no' => strtoupper(
-                            'LMS-' . Str::random(10)
-                        ),
-                        'issued_date' => now(),
-                    ]);
+        $certificate = Certificate::create([
+            'user_id' => Auth::id(),
+            'course_id' => $quiz->course_id,
+            'quiz_attempt_id' => $attempt->id,
+            'certificate_no' => strtoupper(
+                'LMS-' . Str::random(10)
+            ),
+            'issued_date' => now(),
+        ]);
 
-                }
-            }
+        Notification::create([
+            'user_id' => Auth::id(),
+            'title' => 'Certificate Issued',
+            'message' => 'Congratulations! Your certificate for "' .
+                $quiz->course->title .
+                '" has been generated successfully.',
+            'type' => 'certificate',
+        ]);
+
+    }
+}
 
             DB::commit();
 

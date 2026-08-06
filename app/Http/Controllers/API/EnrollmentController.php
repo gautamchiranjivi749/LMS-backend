@@ -9,6 +9,8 @@ use App\Http\Resources\EnrollmentResource;
 use App\Models\Enrollment;
 use App\Models\Course;
 use App\Traits\ApiResponse;
+use App\Models\Notification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class EnrollmentController extends Controller
@@ -50,23 +52,48 @@ class EnrollmentController extends Controller
             );
         }
 
-        $enrollment = Enrollment::create([
-            'user_id' => Auth::id(),
-            'course_id' => $course->id,
-            'status' => 'active',
-            'progress' => 0,
-            'enrolled_at' => now(),
-        ]);
+      DB::beginTransaction();
 
-        return $this->success(
-            'Enrollment successful.',
-            new EnrollmentResource(
-                $enrollment->load(['user', 'course'])
-            ),
-            201
+try {
+
+    $enrollment = Enrollment::create([
+        'user_id' => Auth::id(),
+        'course_id' => $course->id,
+        'status' => 'active',
+        'progress' => 0,
+        'enrolled_at' => now(),
+    ]);
+
+    Notification::create([
+        'user_id' => Auth::id(),
+        'title' => 'Course Enrolled',
+        'message' => 'You have successfully enrolled in '.$course->title,
+        'type' => 'enrollment',
+    ]);
+
+    DB::commit();
+
+    return $this->success(
+        'Enrollment successful.',
+        new EnrollmentResource(
+            $enrollment->load(['user','course'])
+        ),
+        201
+    );
+
+    } catch (\Throwable $e) {
+
+        DB::rollBack();
+
+        return $this->error(
+            'Enrollment failed.',
+            config('app.debug')
+                ? ['error' => $e->getMessage()]
+                : [],
+            500
         );
     }
-
+    }
     /**
      * Display the specified resource.
      */

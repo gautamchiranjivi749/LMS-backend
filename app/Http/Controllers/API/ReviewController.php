@@ -83,6 +83,13 @@ class ReviewController extends Controller
             ]);
 
             DB::commit();
+            
+             Notification::create([
+            'user_id' => Auth::id(),
+            'title' => 'Review Submitted',
+            'message' => 'Thank you for reviewing this course.',
+            'type' => 'review',
+        ]);
 
             return $this->success(
                 'Review submitted successfully.',
