@@ -11,6 +11,7 @@ use App\Models\Lesson;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 

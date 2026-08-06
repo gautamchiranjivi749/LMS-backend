@@ -8,6 +8,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Helpers\ActivityLogger;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 
@@ -46,6 +47,17 @@ class AuthController extends Controller
             }
             $user = Auth::user();
             $token = $user->createToken('lms_token')->plainTextToken;
+            ActivityLogger::log(
+
+            'Login',
+
+            'Authentication',
+
+            null,
+
+            'User logged in.'
+
+        );
             return $this->success(
                 'Login successful .',
                 [
@@ -58,6 +70,17 @@ class AuthController extends Controller
     {
         request()->user()->currentAccessToken()->delete();
 
+        ActivityLogger::log(
+
+            'Logout',
+
+            'Authentication',
+
+            null,
+
+            'User logged out.'
+
+        );
         return $this->success(
             'Logged out successfully.'
         );

@@ -14,6 +14,7 @@ use App\Models\StudentAnswer;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ActivityLogger;
 use App\Models\Certificate;
 use App\Models\Notification;
 use Illuminate\Support\Str;
@@ -83,6 +84,17 @@ class QuizAttemptController extends Controller
             'status' => 'started',
             'started_at' => now(),
         ]);
+        ActivityLogger::log(
+
+            'Start',
+
+            'Quiz',
+
+            $quiz->id,
+
+            'Quiz started.'
+
+        );
 
         Notification::create([
             'user_id' => Auth::id(),
@@ -183,6 +195,17 @@ class QuizAttemptController extends Controller
                 'status' => 'submitted',
                 'completed_at' => now(),
             ]);
+            ActivityLogger::log(
+
+            'Submit',
+
+            'Quiz',
+
+            $quiz->id,
+
+            'Quiz submitted.'
+
+        );
 
             // Generate certificate if student passed
           if ($score >= $quiz->passing_marks) {
@@ -202,6 +225,18 @@ class QuizAttemptController extends Controller
             ),
             'issued_date' => now(),
         ]);
+            ActivityLogger::log(
+
+            'Generate',
+
+            'Certificate',
+
+            $certificate->id,
+
+            'Certificate generated.'
+
+        );
+
 
         Notification::create([
             'user_id' => Auth::id(),

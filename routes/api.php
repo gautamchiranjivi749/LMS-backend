@@ -88,6 +88,10 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
         Route::patch('skills/{id}/restore', [SkillController::class, 'restore']);
         Route::delete('skills/{id}/force-delete', [SkillController::class, 'forceDelete']);
 
+         Route::get('activity-logs',[ActivityLogController::class,'index'] );
+
+        Route::get('activity-logs/{activityLog}',[ActivityLogController::class,'show']);
+
         Route::get('dashboard', [AdminDashboardController::class, 'index']);
 
         });

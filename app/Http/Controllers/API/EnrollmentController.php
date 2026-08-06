@@ -10,6 +10,7 @@ use App\Models\Enrollment;
 use App\Models\Course;
 use App\Traits\ApiResponse;
 use App\Models\Notification;
+use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
@@ -63,6 +64,17 @@ try {
         'progress' => 0,
         'enrolled_at' => now(),
     ]);
+    ActivityLogger::log(
+
+    'Enroll',
+
+    'Course',
+
+    $course->id,
+
+    'Student enrolled in '.$course->title
+
+);
 
     Notification::create([
         'user_id' => Auth::id(),

@@ -10,6 +10,8 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Review;
 use App\Traits\ApiResponse;
+use App\Models\Notification;
+use App\Helpers\ActivityLogger;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -81,15 +83,28 @@ class ReviewController extends Controller
                 'review' => $request->review,
                 'status' => true,
             ]);
+            ActivityLogger::log(
 
-            DB::commit();
-            
+            'Create',
+
+            'Review',
+
+            $review->id,
+
+            'Review submitted.'
+
+        );
+
              Notification::create([
             'user_id' => Auth::id(),
             'title' => 'Review Submitted',
             'message' => 'Thank you for reviewing this course.',
             'type' => 'review',
         ]);
+
+            DB::commit();
+            
+            
 
             return $this->success(
                 'Review submitted successfully.',
