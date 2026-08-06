@@ -19,6 +19,8 @@ use App\Http\Controllers\API\TeacherDashboardController;
 use App\Http\Controllers\API\AdminDashboardController;
 use App\Http\Controllers\API\LessonProgressController;
 use App\Http\Controllers\API\ReviewController;
+use App\Http\Controllers\API\NotificationController;
+use App\Http\Controllers\API\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -140,6 +142,22 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
         Route::put('reviews/{review}',[ReviewController::class, 'update']);
 
         Route::delete('reviews/{review}',[ReviewController::class, 'destroy']);
+
+         Route::get('notifications',[NotificationController::class,'index']);
+
+        Route::get('notifications/{notification}',[NotificationController::class,'show']);
+
+        Route::patch('notifications/{notification}/read',[NotificationController::class,'update']);
+
+        Route::delete('notifications/{notification}',[NotificationController::class,'destroy'] );
+
+        Route::get('wishlists',[WishlistController::class, 'index'] );
+
+        Route::post('wishlists',[WishlistController::class, 'store'] );
+
+        Route::delete('wishlists/{wishlist}',[WishlistController::class, 'destroy'] );
+
+        Route::get('wishlists/check/{course}',[WishlistController::class, 'check'] );
 
 
        
